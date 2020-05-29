@@ -1,16 +1,16 @@
-import React from 'react';
+import React from "react";
+import SpotifyWebApi from "spotify-web-api-js";
+
+const spotifyApi = new SpotifyWebApi();
 
 function App() {
+  const handleLogin = () => {
+    console.log("ahhh");
+  };
+  console.log("rendered");
   return (
-    <div style={{ textAlign: 'center' }}>
-      <header>
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
-          Learn React
-        </a>
-      </header>
+    <div style={{ textAlign: "center" }}>
+      <a href="http://localhost:8888/login">Login</a>
     </div>
   );
 }
