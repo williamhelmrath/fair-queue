@@ -35,7 +35,7 @@ app.get("/login", (req, res) => {
 
   res.cookie(stateKey, state);
 
-  let scope = "user-read-private user-read-email";
+  let scope = "user-read-private user-read-email user-read-currently-playing";
 
   const url = "https://accounts.spotify.com/authorize";
   const query = {
@@ -54,7 +54,7 @@ app.get("/callback", (req, res) => {
   let state = req.query.state || null;
   let storedState = req.cookies ? req.cookies[stateKey] : null;
 
-  if (state === null || state !== storedState) {
+  if (!state || state !== storedState) {
     res.redirect("/#" + queryString.stringify({ error: "state_mismatch" }));
   } else {
     res.clearCookie(stateKey);
@@ -84,16 +84,46 @@ app.get("/callback", (req, res) => {
           console.log(body);
 
           res.redirect(
-            "/#" + queryString.stringify({ access_token, refresh_token })
+            "http://localhost:3000/#" +
+              queryString.stringify({ access_token, refresh_token })
           );
         });
       } else {
-        res.redirect("/#" + queryString.stringify({ error: "invalid_token" }));
+        res.redirect(
+          "http://localhost:3000/#" +
+            queryString.stringify({ error: "invalid_token" })
+        );
       }
     });
   }
 });
 
+app.get("/refresh_token", (req, res) => {
+  // requesting access token from refresh token
+  let refresh_token = req.query.refresh_token;
+  let authOptions = {
+    url: "https://accounts.spotify.com/api/token",
+    headers: {
+      Authorization:
+        "Basic " +
+        new Buffer(client_id + ":" + client_secret).toString("base64"),
+    },
+    form: {
+      grant_type: "refresh_token",
+      refresh_token: refresh_token,
+    },
+    json: true,
+  };
+
+  request.post(authOptions, function (error, response, body) {
+    if (!error && response.statusCode === 200) {
+      let access_token = body.access_token;
+      res.send({
+        access_token: access_token,
+      });
+    }
+  });
+});
 // app.use(express.static(path.join(__dirname, "build")));
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(__dirname, "build/index.html"));
