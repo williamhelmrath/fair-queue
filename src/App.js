@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import SpotifyWebApi from "spotify-web-api-js";
-import { Grommet, Header, Text, Button, Main } from "grommet";
+import { Grommet, Header, Text, Button, Main, Heading } from "grommet";
 import "./App.css";
 import CreatePlaylistForm from "./CreatePlaylistForm";
+import AddPlaylistPage from "./AddPlaylistPage";
 const spotifyApi = new SpotifyWebApi();
 
 const getHashParams = () => {
@@ -30,59 +31,67 @@ const theme = {
 };
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [create, setCreate] = useState(false);
   const [user, setUser] = useState("");
   const [playlistTitle, setPlaylistTitle] = useState("");
+  const [selectedPlaylists, setSelectedPlaylists] = useState([]);
+  const [activeStep, setActiveStep] = useState(0);
+
+  const getStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <div style={{ textAlign: "center", marginTop: "4vh" }}>
+            <Button
+              href="http://localhost:8080/login"
+              label="Login with Spotify"
+            ></Button>
+          </div>
+        );
+      case 1:
+        return (
+          <CreatePlaylistForm
+            setPlaylistTitle={setPlaylistTitle}
+            playlistTitle={playlistTitle}
+            spotifyApi={spotifyApi}
+            userId={user.id}
+            setActiveStep={setActiveStep}
+          />
+        );
+      case 2:
+        return (
+          <div>
+            <Heading>{playlistTitle}</Heading>
+            <AddPlaylistPage
+              spotifyApi={spotifyApi}
+              setActiveStep={setActiveStep}
+              setSelectedPlaylists={setSelectedPlaylists}
+              selectedPlaylists={selectedPlaylists}
+            />
+          </div>
+        );
+      default:
+        return "Unknown step";
+    }
+  };
 
   useEffect(() => {
     const params = getHashParams();
     const token = params.access_token;
     if (token) {
       spotifyApi.setAccessToken(token);
-      setLoggedIn(true);
+      setActiveStep(2);
       spotifyApi.getMe().then((response) => {
         setUser(response);
       });
     }
   }, []);
 
-  if (!loggedIn) {
-    return (
-      <Grommet theme={theme}>
-        <div style={{ textAlign: "center", marginTop: "4vh" }}>
-          <Button
-            href="http://localhost:8080/login"
-            label="Login with Spotify"
-          ></Button>
-        </div>
-      </Grommet>
-    );
-  }
   return (
     <Grommet theme={theme}>
       <Header background="brand" justify="end" style={{ marginBottom: "3vh" }}>
         <Text>{user.email}</Text>
       </Header>
-      <Main align="center">
-        <Button
-          primary
-          label="Create a fair queue!"
-          onClick={() => setCreate(true)}
-          size="large"
-          style={{ width: "40vw" }}
-        ></Button>
-      </Main>
-
-      {create && (
-        <CreatePlaylistForm
-          setCreate={setCreate}
-          setPlaylistTitle={setPlaylistTitle}
-          playlistTitle={playlistTitle}
-          spotifyApi={spotifyApi}
-          userId={user.id}
-        />
-      )}
+      <Main align="center">{getStepContent(activeStep)}</Main>
     </Grommet>
   );
 }

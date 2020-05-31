@@ -2,28 +2,24 @@ import React from "react";
 import { Layer, Box, TextInput, Button } from "grommet";
 
 export default function CreatePlaylistForm({
-  setCreate,
   setPlaylistTitle,
   playlistTitle,
   spotifyApi,
   userId,
+  setActiveStep,
 }) {
   const handleSave = () => {
     spotifyApi.createPlaylist(userId, {
       name: playlistTitle,
       public: true,
     });
-    setCreate(false);
+    setActiveStep(2);
   };
 
   return (
-    <Layer
-      margin="small"
-      onEsc={() => setCreate(false)}
-      onClickOutside={() => setCreate(false)}
-    >
-      <Box gap="small" margin="medium" width="40vw">
-        <form onSubmit={handleSave}>
+    <Layer margin="small">
+      <form onSubmit={handleSave}>
+        <Box gap="small" margin="medium" width="40vw">
           <TextInput
             placeholder="Title"
             value={playlistTitle}
@@ -31,17 +27,14 @@ export default function CreatePlaylistForm({
             required
           />
 
-          <Box direction="row" gap="small" margin={{ top: "small" }}>
-            <Button
-              primary
-              label="Save"
-              onClick={handleSave}
-              disabled={playlistTitle.length < 1}
-            />
-            <Button label="Cancel" onClick={() => setCreate(false)} />
-          </Box>
-        </form>
-      </Box>
+          <Button
+            primary
+            label="Save"
+            onClick={handleSave}
+            disabled={playlistTitle.length < 1}
+          />
+        </Box>
+      </form>
     </Layer>
   );
 }
