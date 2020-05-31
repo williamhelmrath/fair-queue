@@ -35,7 +35,8 @@ app.get("/login", (req, res) => {
 
   res.cookie(stateKey, state);
 
-  let scope = "user-read-private user-read-email user-read-currently-playing";
+  let scope =
+    "user-read-private user-read-email user-read-currently-playing playlist-modify-public";
 
   const url = "https://accounts.spotify.com/authorize";
   const query = {
@@ -129,7 +130,7 @@ app.get("/refresh_token", (req, res) => {
 //   res.sendFile(path.join(__dirname, "build/index.html"));
 // });
 
-let PORT = process.env.PORT || 8888;
+let PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}...`);
 });

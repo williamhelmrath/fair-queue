@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import SpotifyWebApi from "spotify-web-api-js";
-import axios from "axios";
-
+import { Grommet, Header, Text, Button, Main } from "grommet";
+import "./App.css";
+import CreatePlaylistForm from "./CreatePlaylistForm";
 const spotifyApi = new SpotifyWebApi();
 
 const getHashParams = () => {
@@ -17,52 +18,71 @@ const getHashParams = () => {
   return hashParams;
 };
 
+const theme = {
+  global: {
+    colors: { brand: "#1DB954" },
+    font: {
+      family: "Roboto",
+      size: "18px",
+      height: "20px",
+    },
+  },
+};
+
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [nowPlaying, setNowPlaying] = useState({
-    name: "Not Checked",
-    albumArt: "",
-  });
+  const [create, setCreate] = useState(false);
+  const [user, setUser] = useState("");
+  const [playlistTitle, setPlaylistTitle] = useState("");
 
   useEffect(() => {
     const params = getHashParams();
     const token = params.access_token;
     if (token) {
       spotifyApi.setAccessToken(token);
-      console.log("token", spotifyApi.getAccessToken());
       setLoggedIn(true);
+      spotifyApi.getMe().then((response) => {
+        setUser(response);
+      });
     }
   }, []);
 
-  const getNowPlaying = () => {
-    console.log("getting now playing");
-    spotifyApi.getMyCurrentPlayingTrack().then((response) => {
-      console.log(response);
-      setNowPlaying({
-        name: response.item.name,
-        albumArt: response.item.album.images[0].url,
-      });
-    });
-  };
-
   if (!loggedIn) {
     return (
-      <div style={{ textAlign: "center" }}>
-        <a href="http://localhost:8888/login">Login</a>
-      </div>
+      <Grommet theme={theme}>
+        <div style={{ textAlign: "center", marginTop: "4vh" }}>
+          <Button
+            href="http://localhost:8080/login"
+            label="Login with Spotify"
+          ></Button>
+        </div>
+      </Grommet>
     );
   }
   return (
-    <div style={{ textAlign: "center" }}>
-      <div>Now Playing: {nowPlaying.name}</div>
-      <div>
-        <img
-          src={nowPlaying.albumArt}
-          style={{ height: 150 }}
-          alt="album art"
+    <Grommet theme={theme}>
+      <Header background="brand" justify="end" style={{ marginBottom: "3vh" }}>
+        <Text>{user.email}</Text>
+      </Header>
+      <Main align="center">
+        <Button
+          primary
+          label="Create a fair queue!"
+          onClick={() => setCreate(true)}
+          size="large"
+          style={{ width: "40vw" }}
+        ></Button>
+      </Main>
+
+      {create && (
+        <CreatePlaylistForm
+          setCreate={setCreate}
+          setPlaylistTitle={setPlaylistTitle}
+          playlistTitle={playlistTitle}
+          spotifyApi={spotifyApi}
+          userId={user.id}
         />
-      </div>
-      <button onClick={getNowPlaying}>Check Now Playing</button>
-    </div>
+      )}
+    </Grommet>
   );
 }
